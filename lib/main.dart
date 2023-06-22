@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_prueba_webview/src/menu.dart';
 import 'package:webview_flutter/webview_flutter.dart'; // ADD
 
 import 'src/navigation_controls.dart'; // ADD
@@ -22,13 +23,12 @@ class WebViewApp extends StatefulWidget {
 class _WebViewAppState extends State<WebViewApp> {
   // Add from here...
   late final WebViewController controller;
-
   @override
   void initState() {
     super.initState();
     controller = WebViewController()
       ..loadRequest(
-        Uri.parse('https://esgrima-fae.com.ar/new/'),
+        Uri.parse('https://esgrima-fae.com.ar/new'),
       );
   }
   // ...to here.
@@ -41,6 +41,7 @@ class _WebViewAppState extends State<WebViewApp> {
         // Add from here...
         actions: [
           NavigationControls(controller: controller),
+          Menu(controller: controller)
         ],
         // ...to here.
       ),

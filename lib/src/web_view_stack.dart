@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class WebViewStack extends StatefulWidget {
-  const WebViewStack({required this.controller, super.key}); // MODIFY
+  const WebViewStack({required this.controller, super.key});
 
-  final WebViewController controller; // ADD
+  final WebViewController controller;
 
   @override
   State<WebViewStack> createState() => _WebViewStackState();
@@ -12,32 +12,52 @@ class WebViewStack extends StatefulWidget {
 
 class _WebViewStackState extends State<WebViewStack> {
   var loadingPercentage = 0;
-  // REMOVE the controller that was here
 
   @override
   void initState() {
     super.initState();
-    // Modify from here...
-    widget.controller.setNavigationDelegate(
-      NavigationDelegate(
-        onPageStarted: (url) {
-          setState(() {
-            loadingPercentage = 0;
-          });
+    widget.controller
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (url) {
+            setState(() {
+              loadingPercentage = 0;
+            });
+          },
+          onProgress: (progress) {
+            setState(() {
+              loadingPercentage = progress;
+            });
+          },
+          onPageFinished: (url) {
+            setState(() {
+              loadingPercentage = 100;
+            });
+          },
+          onNavigationRequest: (navigation) {
+            final host = Uri.parse(navigation.url).host;
+            if (host.contains('youtube.com')) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Blocking navigation to $host',
+                  ),
+                ),
+              );
+              return NavigationDecision.prevent;
+            }
+            return NavigationDecision.navigate;
+          },
+        ),
+      )
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..addJavaScriptChannel(
+        'SnackBar',
+        onMessageReceived: (message) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(message.message)));
         },
-        onProgress: (progress) {
-          setState(() {
-            loadingPercentage = progress;
-          });
-        },
-        onPageFinished: (url) {
-          setState(() {
-            loadingPercentage = 100;
-          });
-        },
-      ),
-    );
-    // ...to here.
+      );
   }
 
   @override
@@ -45,7 +65,7 @@ class _WebViewStackState extends State<WebViewStack> {
     return Stack(
       children: [
         WebViewWidget(
-          controller: widget.controller, // MODIFY
+          controller: widget.controller,
         ),
         if (loadingPercentage < 100)
           LinearProgressIndicator(
